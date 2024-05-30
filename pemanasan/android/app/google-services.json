@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "483410641597",
+    "project_id": "magang-12f7f",
+    "storage_bucket": "magang-12f7f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:483410641597:android:2e917ebbf70c5d1fdfedd4",
+        "android_client_info": {
+          "package_name": "com.example.pemanasan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3d61m5r08qaFDPiyaJypLP1GW9sNmWEU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
