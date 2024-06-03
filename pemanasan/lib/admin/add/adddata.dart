@@ -165,32 +165,32 @@ class _PageAddDataState extends State<PageAddData> {
                     ),
                     Padding(padding: EdgeInsets.symmetric(vertical: 10)),
 
-            // DropdownButtonFormField<String>(
+            DropdownButtonFormField<String>(
               
-            //   decoration: InputDecoration(
-            //     labelText: 'Select Option',
-            //     border: OutlineInputBorder(),
-            //   ),
-            //   value: _selectedValue,
-            //   onChanged: (newValue) {
-            //     setState(() {
-            //       _selectedValue = newValue;
-            //     });
-            //   },
-            //   items: <String>['Chinese', 'Indonesian', 'Japan', 'Korean', 'Dessert', 'Drink']
-            //       .map<DropdownMenuItem<String>>((String value) {
-            //     return DropdownMenuItem<String>(
-            //       value: value,
-            //       child: Text(value),
-            //     );
-            //   }).toList(),
-            //   validator: (value) {
-            //     if (value == null || value.isEmpty) {
-            //       return 'Please select an option';
-            //     }
-            //     return null;
-            //   },
-            // ),
+              decoration: InputDecoration(
+                labelText: 'Select Option',
+                border: OutlineInputBorder(),
+              ),
+              value: _selectedValue,
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedValue = newValue;
+                });
+              },
+              items: <String>['Chinese', 'Indonesian', 'Japan', 'Korean', 'Dessert', 'Drink']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select an option';
+                }
+                return null;
+              },
+            ),
             
                     ElevatedButton(
                       
