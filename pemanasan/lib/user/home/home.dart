@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 
 
@@ -46,14 +47,25 @@ class _PageHomeState extends State<PageHome> {
                 child: Row(
                   children: [
                      Padding(
-                       padding: const EdgeInsets.only(left: 5),
+                       padding: const EdgeInsets.only(left: 10),
                        child: Container(
-                        child: Text("Ayo memasak!", style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white
-                          // fontFamily: 'klepon'
-                        ),),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 90),
+                              child: Text("mau memasak", style:GoogleFonts.caladea(
+                               textStyle: Theme.of(context).textTheme.displayLarge,
+                              fontSize: 15, 
+                              color: Colors.white
+                                                  ) ,),
+                            ),
+                       Text("apa hari ini?", style:GoogleFonts.caladea(
+                             textStyle: Theme.of(context).textTheme.displayLarge,
+                            fontSize: 15, 
+                            color: Colors.white
+                      ) ,),
+                          ],
+                        ),
                                          ),
                      ),
                     Container(
@@ -247,6 +259,24 @@ class _PageHomeState extends State<PageHome> {
                     ),
                     
                     
+                  ],
+                ),
+              ),
+              Container(
+                 margin: EdgeInsets.only(left: 10, top: 30),
+                child: Row(
+                  children: [
+                    Container(
+
+                      child: Image.asset("assets/images/bawah.png", width: 230,),
+                    ),
+                    Container(
+                      child: Text("let him cook!", style:GoogleFonts.radioCanada(
+                         textStyle: Theme.of(context).textTheme.displayLarge,
+                        fontSize: 20, 
+                        color: Colors.black
+                      ) ,),
+                    )
                   ],
                 ),
               )
