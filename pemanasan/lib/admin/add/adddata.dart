@@ -206,7 +206,7 @@ class _PageAddDataState extends State<PageAddData> {
                         _formkey.currentState!.validate();
                       }, 
                       style: ElevatedButton.styleFrom(
-                        primary: Color.fromARGB(255, 238, 204, 104),
+                        // primary: Color.fromARGB(255, 238, 204, 104),
                         
                       ),
                       

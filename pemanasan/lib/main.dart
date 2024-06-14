@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:pemanasan/fl/home/homeff.dart';
+import 'fl/chart/chart.dart';
 import 'admin/home/homeAdmn.dart';
 import 'user/home/home.dart';
 
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: PageHomeAdmn(),
+      home: PageHomeFish(),
     );
   }
 }
