@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:pemanasan/fl/chart/chart.dart';
-import 'package:pemanasan/fl/fish/ff.dart';
+import 'package:pemanasan/fish_finder/chart/chart.dart';
+import 'package:pemanasan/fish_finder/chart/chart2.dart';
+import 'package:pemanasan/fish_finder/chart/chart3.dart';
+import 'package:pemanasan/fish_finder/fish/ff.dart';
 
 class PageHomeFish extends StatefulWidget {
   const PageHomeFish({super.key});
@@ -48,6 +50,37 @@ class _PageHomeFishState extends State<PageHomeFish> {
                 height: 150,
                 child: Center(
                   child: Text("Fish Finder")),
+                decoration: BoxDecoration(
+                  border: Border.all(width: 2),
+                  borderRadius: BorderRadius.circular(10)
+                ),
+              ),
+            ),
+             GestureDetector(
+              onTap: () {
+                 Navigator.push(context, MaterialPageRoute(builder: (BuildContext context)=>chart02()));
+              },
+              child: Container(
+                margin: EdgeInsets.only(top: 20, left: 30),
+                width: 300,
+                height: 150,
+                child: Center(
+                  child: Text("Fish Finder 200")),
+                decoration: BoxDecoration(
+                  border: Border.all(width: 2),
+                  borderRadius: BorderRadius.circular(10)
+                ),
+              ),
+            ), GestureDetector(
+              onTap: () {
+                 Navigator.push(context, MaterialPageRoute(builder: (BuildContext context)=>chart03()));
+              },
+              child: Container(
+                margin: EdgeInsets.only(top: 20, left: 30),
+                width: 300,
+                height: 150,
+                child: Center(
+                  child: Text("Fish Finder 3")),
                 decoration: BoxDecoration(
                   border: Border.all(width: 2),
                   borderRadius: BorderRadius.circular(10)
