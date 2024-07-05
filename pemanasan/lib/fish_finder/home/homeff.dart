@@ -73,7 +73,7 @@ class _PageHomeFishState extends State<PageHomeFish> {
               ),
             ), GestureDetector(
               onTap: () {
-                 Navigator.push(context, MaterialPageRoute(builder: (BuildContext context)=>chart03()));
+                 Navigator.push(context, MaterialPageRoute(builder: (BuildContext context)=>Chart03()));
               },
               child: Container(
                 margin: EdgeInsets.only(top: 20, left: 30),
