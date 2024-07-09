@@ -4,21 +4,20 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
 
-// Fungsi utama untuk menampilkan Widget utama
-void main() {
-  runApp(const MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: ScatterChartSample2(),
-  ));
-}
+// void main() {
+//   runApp(const MaterialApp(
+//     debugShowCheckedModeBanner: false,
+//     home: FishFinderApp(),
+//   ));
+// }
 
-class ScatterChartSample2 extends StatefulWidget {
-  const ScatterChartSample2({super.key});
+class FishFinderApp extends StatefulWidget {
+  const FishFinderApp({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _ScatterChartSample2State createState() => _ScatterChartSample2State();
+  _FishFinderAppState createState() => _FishFinderAppState();
 }
 
 class FlDotCustomPainter extends FlDotPainter {
@@ -40,12 +39,6 @@ class FlDotCustomPainter extends FlDotPainter {
   Size getSize(FlSpot spot) => const Size(40, 40);
 
   @override
-  void drawTouched(Canvas canvas, FlSpot spot, Offset offsetInCanvas,
-      {Color? color, double? strokeWidth = 0, double? radius = 40}) {
-    draw(canvas, spot, offsetInCanvas, opacity: 1, color: color, strokeWidth: strokeWidth, radius: radius);
-  }
-
-  @override
   FlDotPainter lerp(FlDotPainter a, FlDotPainter b, double t) {
     return this;
   }
@@ -57,7 +50,9 @@ class FlDotCustomPainter extends FlDotPainter {
   List<Object?> get props => [image];
 }
 
-class _ScatterChartSample2State extends State<ScatterChartSample2> {
+class _FishFinderAppState extends State<FishFinderApp> {
+  
+
   Future<ui.Image> loadImage(String asset) async {
     ByteData data = await rootBundle.load(asset);
     ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
@@ -68,16 +63,21 @@ class _ScatterChartSample2State extends State<ScatterChartSample2> {
   final Color circleColor = const Color(0xFF123456); // Warna lingkaran pada chart
   List<Fish> fishData = []; // List untuk menyimpan data ikan
   Timer? _timer;
-  int _seconds = 0;
+  double _xOffset = 0.0;
+  Random random = Random();
 
   @override
   void initState() {
     super.initState();
-    // Panggil fungsi untuk mengambil data setiap detik
     startFetchingData();
     _startTimer();
-    //dotimage
     imageFuture = loadImage('assets/images/fishhh.png');
+     _controller = VideoPlayerController.asset('assets/images/lautlagi.mp4')
+      ..initialize().then((_) {
+        setState(() {});
+        _controller.setLooping(true);
+        _controller.play();
+      });
   }
 
   @override
@@ -86,66 +86,33 @@ class _ScatterChartSample2State extends State<ScatterChartSample2> {
     super.dispose();
   }
 
-  // Fungsi untuk mengambil data posisi x, y dari modul atau API
   void fetchData() {
-    var random = Random();
-    // Update posisi ikan
     setState(() {
-      for (Fish fish in fishData) {
-        // Update posisi ikan dengan kecepatan dan arah
-        fish.x += fish.vx;
-        fish.y += fish.vy;
-      }
-
-      // Hapus ikan yang keluar dari batas chart
-      fishData.removeWhere((fish) => fish.x < 0 || fish.x > 10 || fish.y < 0 || fish.y > 10);
-
-      // Tambahkan ikan baru secara acak
-      if (random.nextDouble() < 0.1) { // Sesuaikan probabilitas munculnya ikan baru
-        double x = random.nextBool() ? 0 : 10; // Muncul dari kiri atau kanan
-        double y = random.nextDouble() * 10;
-        double vx = (random.nextDouble() * 0.2) - 0.1; // Kecepatan x (-0.1 hingga 0.1)
-        double vy = (random.nextDouble() * 0.2) - 0.1; // Kecepatan y (-0.1 hingga 0.1)
-        fishData.add(Fish(x: x, y: y, vx: vx, vy: vy));
+      double y = random.nextDouble() * 10;
+      fishData.add(Fish(x: _xOffset, y: y));
+      if (fishData.length > 10) {
+        fishData.removeAt(0);
       }
     });
   }
 
-  // Fungsi fetching data setiap {periode} detik
   void startFetchingData() {
-    const period = Duration(seconds: 1); // Update setiap detik
+    const period = Duration(seconds: 10); // Update setiap 10 detik
     Timer.periodic(period, (Timer t) {
       fetchData();
     });
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
-        _seconds += 10;
+        _xOffset += 1;
       });
     });
   }
 
-  List<String> _generateTimeLabels(int seconds) {
-    List<String> labels = [];
-    int start = seconds ~/ 10 * 10;
-
-    for (int i = start - 50; i <= start; i += 10) {
-      if (i <= 0) {
-        labels.add('...');
-      } else if (i < 60) {
-        labels.add('${i}s');
-      } else {
-        int minutes = i ~/ 60;
-        int seconds = i % 60;
-        labels.add('${minutes}m${seconds.toString().padLeft(2, '0')}s');
-      }
-    }
-    return labels.reversed.toList();
-  }
-
   late Future<ui.Image> imageFuture;
+  late VideoPlayerController _controller;
 
   @override
   Widget build(BuildContext context) {
@@ -153,8 +120,9 @@ class _ScatterChartSample2State extends State<ScatterChartSample2> {
       future: imageFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-          List<ScatterSpotWithColor> spotsWithColors = fishData.map((fish) {
-            return ScatterSpotWithColor(
+          List<ScatterSpotWithColor> spotsWithColors = [];
+          for (var fish in fishData) {
+            spotsWithColors.add(ScatterSpotWithColor(
               spot: ScatterSpot(
                 fish.x,
                 fish.y,
@@ -162,41 +130,97 @@ class _ScatterChartSample2State extends State<ScatterChartSample2> {
               ),
               color: circleColor,
               xLabel: '${fish.x.toStringAsFixed(2)}, ${fish.y.toStringAsFixed(2)}',
-            );
-          }).toList();
-
-          List<String> _timeLabels = _generateTimeLabels(_seconds);
+            ));
+          }
 
           return Scaffold(
             appBar: AppBar(
               backgroundColor: const Color.fromARGB(255, 35, 178, 255),
               title: const Text('Fish Finder'),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
             ),
+            bottomNavigationBar: BottomAppBar(
+        color: Colors.blue,
+        height: 60,
+        shadowColor: Colors.black38,
+         child: Center(
+          child: Text('Confident: ${random.nextInt(101)}%', style: TextStyle(
+                      color: Colors.black,),
+         ),
+         ),),
             body: Column(
               children: [
                 Expanded(
                   child: Stack(
+                    
                     children: [
+                      Positioned.fill(
+                      child: _controller.value.isInitialized
+                      ? VideoPlayer(_controller)
+                      : Container(color: Colors.black),
+                    ),
+
+                    Positioned(
+              top: 20,
+              right: 255,
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    
+                    child: Column(
+                      children: [
+                        
+                        const Text(
+                          "Data Terkini",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black
+                          ),
+                        ),
+                        Container(
+                          child: Row(
+                            children: [
+                              Image.asset('assets/images/fishhh1.png', width: 30),
+                              const Text(":9 M", style: TextStyle(
+                              color: Colors.black
+                          ),),
+                            ],
+                          )
+                          ),
+                          Container(
+                          child: Row(
+                            children: [
+                              Image.asset('assets/images/seawapes.png', width: 30),
+                              const Text(":36 M", style: TextStyle(
+                              color: Colors.black
+                          ),),
+                            ],
+                          )
+                          ),
+                        
+                        
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
                       Padding(
-                        padding: const EdgeInsets.only(top: 25.0, right: 40.0, bottom: 50.0, left: 16.0),
+                        padding: const EdgeInsets.only(top: 125, right: 40.0, bottom:10, left: 16.0),
                         child: ScatterChart(
                           ScatterChartData(
                             scatterSpots: spotsWithColors.map((e) => e.spot).toList(),
-                            minX: 0,
-                            maxX: 10,
+                            minX: _xOffset - 10,
+                            maxX: _xOffset,
                             minY: 0,
                             maxY: 10,
                             borderData: FlBorderData(
                               show: true,
                               border: const Border(
-                                left: BorderSide(color: Colors.black, width: 3),
-                                bottom: BorderSide(color: Colors.black, width: 3),
+                                left: BorderSide(color: Colors.white, width: 2),
+                                bottom: BorderSide(color: Colors.white, width: 2),
                               ),
                             ),
                             gridData: FlGridData(
@@ -221,7 +245,7 @@ class _ScatterChartSample2State extends State<ScatterChartSample2> {
                                       child: Text(
                                         "${(100 - value * 10).toStringAsFixed(0)} m",
                                         style: const TextStyle(
-                                          color: Colors.black,
+                                          color: Colors.white,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -233,9 +257,12 @@ class _ScatterChartSample2State extends State<ScatterChartSample2> {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   reservedSize: 30,
-                                  interval: 2,
+                                  interval: 10,
                                   getTitlesWidget: (value, meta) {
-                                    return Text(_timeLabels[(value ~/ 2) % _timeLabels.length]);
+                                    if (value % 10 == 0) {
+                                      return Text('${value.toStringAsFixed(0)}s', style: TextStyle(color: Colors.white),);
+                                    }
+                                    return const Text('');
                                   },
                                 ),
                               ),
@@ -253,29 +280,31 @@ class _ScatterChartSample2State extends State<ScatterChartSample2> {
                           ),
                         ),
                       ),
-                      // Menambahkan bottom container
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          color: Colors.white,
-                          height: 60,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Row(
-                                children: [
-                                  Image.asset('assets/images/fish.png', width: 24, height: 24), // Ganti dengan ikon ikan Anda
-                                  const SizedBox(width: 8),
-                                  const Text('18m', style: TextStyle(fontSize: 16)),
-                                ],
-                              ),
-                              const Text('Confident: 80%', style: TextStyle(fontSize: 16)),
-                            ],
-                          ),
-                        ),
-                      ),
+                      // Positioned(
+                      //   bottom: 0,
+                      //   left: 0,
+                      //   right: 0,
+                      //   child: Container(
+                      //     color: Colors.white,
+                      //     height: 60,
+                      //     child: Row(
+                      //       mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      //       children: [
+                      //         Row(
+                      //           children: [
+                      //             // Image.asset('assets/images/fish.png', width: 24, height: 24),
+                      //             // const SizedBox(width: 8),
+                      //             // const Text('18m', style: TextStyle(fontSize: 16)),
+                      //           ],
+                      //         ),
+                      //         Center(
+                      //           child: Text('Confident: ${random.nextInt(101)}%',
+                      //               style: const TextStyle(fontSize: 16)),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
@@ -291,12 +320,11 @@ class _ScatterChartSample2State extends State<ScatterChartSample2> {
 }
 
 class Fish {
-  double x, y, vx, vy;
+  double x, y;
 
-  Fish({required this.x, required this.y, required this.vx, required this.vy});
+  Fish({required this.x, required this.y});
 }
 
-// Class untuk menyimpan data titik dengan warna dan label X
 class ScatterSpotWithColor {
   final ScatterSpot spot;
   final Color color;

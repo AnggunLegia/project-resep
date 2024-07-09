@@ -75,7 +75,7 @@ class _Chart03State extends State<Chart03> {
   void initState() {
     super.initState();
     imageFuture = loadImage('assets/images/fishhh.png');
-     _controller = VideoPlayerController.asset('assets/images/bekgron.mp4')
+     _controller = VideoPlayerController.asset('assets/images/lautlagi.mp4')
       ..initialize().then((_) {
         setState(() {});
         _controller.setLooping(true);
@@ -156,15 +156,15 @@ class _Chart03State extends State<Chart03> {
        width: 700,
         decoration: BoxDecoration(
           
-          image: DecorationImage(image: AssetImage('assets/images/laut4.gif',), fit: BoxFit.cover)
+          // image: DecorationImage(image: AssetImage('assets/images/laut4.gif',), fit: BoxFit.cover)
         ),
         child: Stack(
           children: <Widget>[
-          //   Positioned.fill(
-          //   child: _controller.value.isInitialized
-          //       ? VideoPlayer(_controller)
-          //       : Container(color: Colors.black),
-          // ),
+            Positioned.fill(
+            child: _controller.value.isInitialized
+                ? VideoPlayer(_controller)
+                : Container(color: Colors.black),
+          ),
             // Positioned.fill(
             //   left: 0,
             //   right: 0,
