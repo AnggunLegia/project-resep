@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pemanasan/fish_finder/chart/chart2.dart';
 import 'package:pemanasan/fish_finder/chart/chart3.dart';
+import 'package:pemanasan/fish_finder/chart/chartbaru.dart';
 import 'package:pemanasan/fish_finder/chart/main1.dart';
 import 'package:pemanasan/fish_finder/home/homeff.dart';
 import 'fish_finder/chart/chart.dart';
@@ -39,7 +40,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: FishFinderApp(),
+      home: PageHomeFish(),
     );
   }
 }

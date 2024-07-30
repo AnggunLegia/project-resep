@@ -71,7 +71,7 @@ class _FishFinderAppState extends State<FishFinderApp> {
     super.initState();
     startFetchingData();
     _startTimer();
-    imageFuture = loadImage('assets/images/fishhh.png');
+    imageFuture = loadImage('assets/images/ffis.png');
      _controller = VideoPlayerController.asset('assets/images/lautlagi.mp4')
       ..initialize().then((_) {
         setState(() {});
@@ -105,9 +105,11 @@ class _FishFinderAppState extends State<FishFinderApp> {
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
+      if(mounted){
+        setState(() {
         _xOffset += 1;
       });
+      }
     });
   }
 

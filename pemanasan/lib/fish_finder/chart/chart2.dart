@@ -1,251 +1,170 @@
-import 'dart:math';
-
-import 'package:fl_chart/fl_chart.dart';
+import 'package:bluetooth_classic/models/device.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 
-// Pastikan `AppColors` didefinisikan dengan benar di sini atau diimpor dari file yang benar
-class AppColors {
-  static const contentColorGreen = Colors.green;
-  static const contentColorYellow = Colors.yellow;
-  static const contentColorPink = Colors.pink;
-  static const contentColorOrange = Colors.orange;
-  static const contentColorPurple = Colors.purple;
-  static const contentColorBlue = Colors.blue;
-  static const contentColorRed = Colors.red;
-  static const contentColorCyan = Colors.cyan;
-  static const contentColorWhite = Colors.white;
-  static const gridLinesColor = Colors.grey;
-}
+import 'package:flutter/services.dart';
+import 'package:bluetooth_classic/bluetooth_classic.dart';
 
-class chart02 extends StatefulWidget {
-  const chart02({super.key});
+
+
+class bluetut extends StatefulWidget {
+  const bluetut({super.key});
 
   @override
-  State<StatefulWidget> createState() => _chart02State();
+  State<bluetut> createState() => _bluetutState();
 }
 
-class _chart02State extends State<chart02> {
-  int touchedIndex = -1;
+class _bluetutState extends State<bluetut> {
+  String _platformVersion = 'Unknown';
+  final _bluetoothClassicPlugin = BluetoothClassic();
+  List<Device> _devices = [];
+  List<Device> _discoveredDevices = [];
+  bool _scanning = false;
+  int _deviceStatus = Device.disconnected;
+  Uint8List _data = Uint8List(0);
+  @override
+  void initState() {
+    super.initState();
+    initPlatformState();
+    _bluetoothClassicPlugin.onDeviceStatusChanged().listen((event) {
+      setState(() {
+        _deviceStatus = event;
+      });
+    });
+    _bluetoothClassicPlugin.onDeviceDataReceived().listen((event) {
+      setState(() {
+        _data = Uint8List.fromList([..._data, ...event]);
+      });
+    });
+  }
 
-  Color greyColor = Colors.grey;
-  final _availableColors = [
-    AppColors.contentColorGreen,
-    AppColors.contentColorYellow,
-    AppColors.contentColorPink,
-    AppColors.contentColorOrange,
-    AppColors.contentColorPurple,
-    AppColors.contentColorBlue,
-    AppColors.contentColorRed,
-    AppColors.contentColorCyan,
-    AppColors.contentColorBlue,
-    AppColors.contentColorGreen,
-    AppColors.contentColorPink,
-  ];
+  // Platform messages are asynchronous, so we initialize in an async method.
+  Future<void> initPlatformState() async {
+    String platformVersion;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    // We also handle the message potentially returning null.
+    try {
+      platformVersion = await _bluetoothClassicPlugin.getPlatformVersion() ??
+          'Unknown platform version';
+    } on PlatformException {
+      platformVersion = 'Failed to get platform version.';
+    }
 
-  List<int> selectedSpots = [];
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) return;
 
-  PainterType _currentPaintType = PainterType.circle;
+    setState(() {
+      _platformVersion = platformVersion;
+    });
+  }
 
-  static FlDotPainter _getPaint(PainterType type, double size, Color color) {
-    switch (type) {
-      case PainterType.circle:
-        return FlDotCirclePainter(
-          color: color,
-          radius: size,
-        );
-      case PainterType.square:
-        return FlDotSquarePainter(
-          color: color,
-          size: size * 2,
-          strokeWidth: 0,
-        );
-      case PainterType.cross:
-        return FlDotCrossPainter(
-          color: color,
-          size: size * 2,
-          width: max(size / 5, 2),
-        );
+  Future<void> _getDevices() async {
+    var res = await _bluetoothClassicPlugin.getPairedDevices();
+    setState(() {
+      _devices = res;
+    });
+  }
+
+  Future<void> _scan() async {
+    if (_scanning) {
+      await _bluetoothClassicPlugin.stopScan();
+      setState(() {
+        _scanning = false;
+      });
+    } else {
+      await _bluetoothClassicPlugin.startScan();
+      _bluetoothClassicPlugin.onDeviceDiscovered().listen(
+        (event) {
+          setState(() {
+            _discoveredDevices = [..._discoveredDevices, event];
+          });
+        },
+      );
+      setState(() {
+        _scanning = true;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final data = [
-      (4.0, 4.0, 4.0),
-      (2.0, 5.0, 12.0),
-      (4.0, 5.0, 8.0),
-      (8.0, 6.0, 20.0),
-      (5.0, 7.0, 14.0),
-      (7.0, 2.0, 18.0),
-      (3.0, 2.0, 36.0),
-      (2.0, 8.0, 22.0),
-      (8.0, 8.0, 32.0),
-      (5.0, 2.5, 24.0),
-      (3.0, 7.0, 18.0),
-    ];
-
-    return AspectRatio(
-      aspectRatio: 1,
-      child: Stack(
-        children: [
-          ScatterChart(
-            ScatterChartData(
-              scatterSpots: data.asMap().entries.map((e) {
-                final index = e.key;
-                final (double x, double y, double size) = e.value;
-                return ScatterSpot(
-                  x,
-                  y,
-                  dotPainter: _getPaint(
-                    _currentPaintType,
-                    size,
-                    selectedSpots.contains(index)
-                        ? _availableColors[index % _availableColors.length]
-                        : AppColors.contentColorWhite.withOpacity(0.5),
-                  ),
-                );
-              }).toList(),
-              minX: 0,
-              maxX: 10,
-              minY: 0,
-              maxY: 10,
-              borderData: FlBorderData(
-                show: false,
-              ),
-              gridData: FlGridData(
-                show: true,
-                drawHorizontalLine: true,
-                checkToShowHorizontalLine: (value) => true,
-                getDrawingHorizontalLine: (value) => const FlLine(
-                  color: AppColors.gridLinesColor,
-                ),
-                drawVerticalLine: true,
-                checkToShowVerticalLine: (value) => true,
-                getDrawingVerticalLine: (value) => const FlLine(
-                  color: AppColors.gridLinesColor,
-                ),
-              ),
-              titlesData: const FlTitlesData(
-                show: false,
-              ),
-              showingTooltipIndicators: selectedSpots,
-              scatterTouchData: ScatterTouchData(
-                enabled: true,
-                handleBuiltInTouches: false,
-                mouseCursorResolver:
-                    (FlTouchEvent touchEvent, ScatterTouchResponse? response) {
-                  return response == null || response.touchedSpot == null
-                      ? MouseCursor.defer
-                      : SystemMouseCursors.click;
-                },
-                touchTooltipData: ScatterTouchTooltipData(
-                  getTooltipColor: (ScatterSpot touchedBarSpot) {
-                    return touchedBarSpot.dotPainter.mainColor;
-                  },
-                  getTooltipItems: (ScatterSpot touchedBarSpot) {
-                    final bool isBgDark =
-                        switch ((touchedBarSpot.x, touchedBarSpot.y)) {
-                      (4.0, 4.0) => false,
-                      (2.0, 5.0) => false,
-                      (4.0, 5.0) => true,
-                      (8.0, 6.0) => true,
-                      (5.0, 7.0) => true,
-                      (7.0, 2.0) => true,
-                      (3.0, 2.0) => true,
-                      (2.0, 8.0) => false,
-                      (8.0, 8.0) => true,
-                      (5.0, 2.5) => false,
-                      (3.0, 7.0) => true,
-                      _ => false,
-                    };
-
-                    final color1 = isBgDark ? Colors.grey[100] : Colors.black87;
-                    final color2 = isBgDark ? Colors.white : Colors.black;
-                    return ScatterTooltipItem(
-                      'X: ',
-                      textStyle: TextStyle(
-                        height: 1.2,
-                        color: color1,
-                        fontStyle: FontStyle.italic,
-                      ),
-                      bottomMargin: 10,
-                      children: [
-                        TextSpan(
-                          text: '${touchedBarSpot.x.toInt()} \n',
-                          style: TextStyle(
-                            color: color2,
-                            fontStyle: FontStyle.normal,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'Y: ',
-                          style: TextStyle(
-                            height: 1.2,
-                            color: color1,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        TextSpan(
-                          text: touchedBarSpot.y.toInt().toString(),
-                          style: TextStyle(
-                            color: color2,
-                            fontStyle: FontStyle.normal,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                touchCallback:
-                    (FlTouchEvent event, ScatterTouchResponse? touchResponse) {
-                  if (touchResponse == null ||
-                      touchResponse.touchedSpot == null) {
-                    return;
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Plugin example app'),
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Text("Device status is $_deviceStatus"),
+              TextButton(
+                onPressed: () async {
+                 try {
+                      await _bluetoothClassicPlugin.initPermissions();
+                      // Lanjutkan dengan operasi berikutnya setelah inisialisasi sukses
+                  } catch (e) {
+                      print('Error initializing Bluetooth permissions: $e');
+                      // Handle error
                   }
-                  if (event is FlTapUpEvent) {
-                    final sectionIndex = touchResponse.touchedSpot!.spotIndex;
-                    setState(() {
-                      if (selectedSpots.contains(sectionIndex)) {
-                        selectedSpots.remove(sectionIndex);
-                      } else {
-                        selectedSpots.add(sectionIndex);
+                },
+                child: const Text("Check Permissions")
+  ),
+              TextButton(
+                onPressed: _getDevices,
+                child: const Text("Get Paired Devices"),
+              ),
+              TextButton(
+                onPressed: _deviceStatus == Device.connected
+                    ? () async {
+                        await _bluetoothClassicPlugin.disconnect();
                       }
-                    });
-                  }
-                },
+                    : null,
+                child: const Text("disconnect"),
               ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.topLeft,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownButton(
-                value: _currentPaintType,
-                items: PainterType.values
-                    .map((e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(e.name),
-                        ))
-                    .toList(),
-                onChanged: (PainterType? value) {
-                  setState(() {
-                    _currentPaintType = value!;
-                  });
-                },
+              TextButton(
+                onPressed: _deviceStatus == Device.connected
+                    ? () async {
+                        await _bluetoothClassicPlugin.write("ping");
+                      }
+                    : null,
+                child: const Text("send ping"),
               ),
-            ),
+              Center(
+                child: Text('Running on: $_platformVersion\n'),
+              ),
+              ...[
+                for (var device in _devices)
+                  TextButton(
+                      onPressed: () async {
+                       try {
+                        await _bluetoothClassicPlugin.connect(device.address, "00001101-0000-1000-8000-00805f9b34fb");
+                        setState(() {
+                                      _discoveredDevices = [];
+                                      _devices = [];
+                                    });
+                                // Proses berhasil terhubung
+                            } catch (e) {
+                                print('Error connecting to device: $e');
+                                // Handle exception, misalnya menampilkan pesan kesalahan kepada pengguna
+                            }
+                      },
+                      child: Text(device.name ?? device.address))
+              ],
+              TextButton(
+                onPressed: _scan,
+                child: Text(_scanning ? "Stop Scan" : "Start Scan"),
+              ),
+              ...[
+                for (var device in _discoveredDevices)
+                  Text(device.name ?? device.address)
+              ],
+              Text("Received data: ${String.fromCharCodes(_data)}"),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
-}
-
-enum PainterType {
-  circle,
-  square,
-  cross,
 }
